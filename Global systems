@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Profile & Settings</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f1f4fb;
+  color:#202438;
+  padding:16px;
+}
+.wrapper{max-width:480px;margin:auto}
+.header{
+  text-align:center;
+  padding:22px 10px;
+}
+.header h1{margin:0 0 8px}
+.card{
+  background:#fff;
+  padding:20px;
+  margin-bottom:16px;
+  border-radius:18px;
+  box-shadow:0 5px 20px #0000000c;
+}
+.profile{text-align:center}
+.avatar{
+  width:96px;height:96px;border-radius:50%;
+  background:#e2e8ff;
+  object-fit:cover;
+  display:block;margin:0 auto 12px;
+}
+input,select{
+  display:block;
+  width:100%;
+  padding:13px;
+  margin:10px 0;
+  border:1px solid #d9deea;
+  border-radius:10px;
+  font-size:15px;
+  background:#fff;color:#222;
+}
+button{
+  width:100%;
+  border:0;
+  padding:13px;
+  border-radius:10px;
+  font-size:15px;
+  font-weight:bold;
+  margin-top:9px;
+  cursor:pointer;
+}
+.primary{background:#4c55e8;color:#fff}
+.secondary{background:#e9ecff;color:#3038b8}
+.danger{background:#ffe9e9;color:#b82020}
+.row{
+  display:flex;align-items:center;
+  justify-content:space-between;gap:12px;
+  padding:10px 0;
+}
+.row button{width:auto;min-width:105px;margin:0}
+.muted{color:#72788b;font-size:13px}
+.status{font-size:14px;margin-top:12px;overflow-wrap:anywhere}
+.hidden{display:none!important}
+body.dark{
+  background:#121522;color:#f3f4ff;
+}
+body.dark .card{background:#202437}
+body.dark input,body.dark select{
+  background:#292e43;color:white;border-color:#454b62
+}
+body.dark .muted{color:#bdc3d8}
+body.dark .secondary{background:#343a60;color:#fff}
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+
+  <header class="header">
+    <h1>👤 My Profile</h1>
+    <p class="muted">आपकी प्रोफाइल और ऐप सेटिंग्स</p>
+  </header>
+
+  <section class="card" id="authCard">
+    <h2>🔐 Login / Register</h2>
+    <p class="muted">अपना अकाउंट खोलें या नया अकाउंट बनाएँ।</p>
+
+    <input id="email" type="email" placeholder="Email address"
+      autocomplete="email">
+    <input id="password" type="password" placeholder="Password"
+      autocomplete="current-password">
+
+    <button class="primary" id="loginBtn">Login</button>
+    <button class="secondary" id="registerBtn">Create Account</button>
+    <button class="secondary" id="resetBtn">Forgot Password?</button>
+    <p id="authStatus" class="status" role="status"></p>
+  </section>
+
+  <section class="card profile hidden" id="profileCard">
+    <img id="avatar" class="avatar"
+      src="https://placehold.co/120x120?text=Profile" alt="Profile photo">
+
+    <h2 id="displayName">My Account</h2>
+    <p id="displayEmail" class="muted"></p>
+
+    <input id="nameInput" type="text" placeholder="Your name"
+      maxlength="60">
+    <input id="photoInput" type="url"
+      placeholder="Profile photo URL (optional)">
+
+    <button class="primary" id="saveProfileBtn">Save Profile</button>
+    <button class="danger" id="logoutBtn">Logout</button>
+    <p id="profileStatus" class="status" role="status"></p>
+  </section>
+
+  <section class="card">
+    <h2>⚙️ App Settings</h2>
+
+    <div class="row">
+      <div>
+        <strong>🌙 Dark Mode</strong>
+        <div class="muted">रात वाली थीम</div>
+      </div>
+      <button class="secondary" id="darkBtn">Enable</button>
+    </div>
+
+    <div class="row">
+      <div>
+        <strong>☀️ Light Mode</strong>
+        <div class="muted">सामान्य थीम</div>
+      </div>
+      <button class="secondary" id="lightBtn">Enable</button>
+    </div>
+
+    <label for="language"><strong>🌐 Language</strong></label>
+    <select id="language">
+      <option value="hi">हिन्दी</option>
+      <option value="en">English</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <strong>🔔 Notifications</strong>
+        <div class="muted">आपकी नोटिफिकेशन प्राथमिकता</div>
+      </div>
+      <input id="notifications" type="checkbox"
+        style="width:24px;height:24px">
+    </div>
+
+    <button class="primary" id="saveSettingsBtn">Save Settings</button>
+    <p id="settingsStatus" class="status" role="status"></p>
+  </section>
+
+  <p class="muted" style="text-align:center">
+    Profile & Settings System
+  </p>
+
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBz7Jity3urifiwd4m-qhhBklBbpWtDOKQ",
+  authDomain: "my-profile-f55ad.firebaseapp.com",
+  databaseURL: "https://my-profile-f55ad-default-rtdb.firebaseio.com",
+  projectId: "my-profile-f55ad"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const auth = firebase.auth();
+const db = firebase.database();
+
+const $ = id => document.getElementById(id);
+
+function status(id, message) {
+  $(id).textContent = message;
+}
+
+function showUser(user) {
+  $("authCard").classList.toggle("hidden", !!user);
+  $("profileCard").classList.toggle("hidden", !user);
+}
+
+function applyTheme(theme) {
+  const dark = theme === "dark";
+  document.body.classList.toggle("dark", dark);
+  document.documentElement.dataset.globalTheme =
+    dark ? "dark" : "light";
+
+  $("darkBtn").textContent = dark ? "Enabled ✓" : "Enable";
+  $("lightBtn").textContent = dark ? "Enable" : "Enabled ✓";
+
+  localStorage.setItem("globalTheme", dark ? "dark" : "light");
+}
+
+function loadSettings(settings = {}) {
+  const theme = settings.theme ||
+    localStorage.getItem("globalTheme") || "light";
+
+  applyTheme(theme);
+  $("language").value = settings.language || "hi";
+  $("notifications").checked = settings.notifications !== false;
+}
+
+async function saveSettings() {
+  const user = auth.currentUser;
+
+  const settings = {
+    theme: document.documentElement.dataset.globalTheme || "light",
+    language: $("language").value,
+    notifications: $("notifications").checked
+  };
+
+  localStorage.setItem("globalProfileSettings", JSON.stringify(settings));
+
+  if (user) {
+    await db.ref("users/" + user.uid + "/settings").update(settings);
+  }
+
+  loadSettings(settings);
+  status("settingsStatus", "✅ Settings saved!");
+}
+
+$("loginBtn").onclick = async () => {
+  try {
+    status("authStatus", "Logging in...");
+    await auth.signInWithEmailAndPassword(
+      $("email").value.trim(),
+      $("password").value
+    );
+    status("authStatus", "Login successful!");
+  } catch (e) {
+    status("authStatus", "Error: " + e.message);
+  }
+};
+
+$("registerBtn").onclick = async () => {
+  try {
+    const email = $("email").value.trim();
+    const password = $("password").value;
+
+    if (password.length < 6) {
+      throw new Error("Password कम से कम 6 अक्षर का होना चाहिए।");
+    }
+
+    const credential = await auth.createUserWithEmailAndPassword(
+      email, password
+    );
+
+    await db.ref("users/" + credential.user.uid).update({
+      name: "",
+      email: credential.user.email,
+      photoURL: ""
+    });
+
+    status("authStatus", "Account created successfully!");
+  } catch (e) {
+    status("authStatus", "Error: " + e.message);
+  }
+};
+
+$("resetBtn").onclick = async () => {
+  try {
+    const email = $("email").value.trim();
+    if (!email) throw new Error("पहले अपना ईमेल लिखें।");
+
+    await auth.sendPasswordResetEmail(email);
+    status("authStatus", "Password reset email भेज दिया गया है।");
+  } catch (e) {
+    status("authStatus", "Error: " + e.message);
+  }
+};
+
+$("saveProfileBtn").onclick = async () => {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("पहले Login करें।");
+
+    const name = $("nameInput").value.trim();
+    const photoURL = $("photoInput").value.trim();
+
+    await db.ref("users/" + user.uid).update({
+      name,
+      photoURL,
+      email: user.email
+    });
+
+    status("profileStatus", "✅ Profile saved!");
+  } catch (e) {
+    status("profileStatus", "Error: " + e.message);
+  }
+};
+
+$("logoutBtn").onclick = async () => {
+  try {
+    await auth.signOut();
+    status("authStatus", "आप Logout हो गए हैं।");
+  } catch (e) {
+    status("profileStatus", "Error: " + e.message);
+  }
+};
+
+$("darkBtn").onclick = () => {
+  applyTheme("dark");
+  saveSettings().catch(e =>
+    status("settingsStatus", "Error: " + e.message)
+  );
+};
+
+$("lightBtn").onclick = () => {
+  applyTheme("light");
+  saveSettings().catch(e =>
+    status("settingsStatus", "Error: " + e.message)
+  );
+};
+
+$("saveSettingsBtn").onclick = () => {
+  saveSettings().catch(e =>
+    status("settingsStatus", "Error: " + e.message)
+  );
+};
+
+auth.onAuthStateChanged(async user => {
+  showUser(user);
+
+  if (!user) return;
+
+  $("displayEmail").textContent = user.email || "";
+
+  try {
+    const snap = await db.ref("users/" + user.uid).once("value");
+    const data = snap.val() || {};
+
+    $("displayName").textContent = data.name || "My Account";
+    $("nameInput").value = data.name || "";
+    $("photoInput").value = data.photoURL || "";
+
+    $("avatar").src =
+      data.photoURL || "https://placehold.co/120x120?text=Profile";
+
+    loadSettings(data.settings || {});
+  } catch (e) {
+    status("profileStatus", "Profile load error: " + e.message);
+  }
+});
+
+try {
+  const saved = JSON.parse(
+    localStorage.getItem("globalProfileSettings") || "{}"
+  );
+  loadSettings(saved);
+} catch (e) {
+  loadSettings();
+}
+</script>
+
+</body>
+</html>
